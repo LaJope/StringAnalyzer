@@ -1,9 +1,10 @@
-#include <future>
+#include <memory>
 #include <mutex>
 #include <thread>
 
-#include "Logger.h"
 #include "Application.h"
+#include "Logger.h"
+#include "SprintWriter.h"
 
 // Application public
 
@@ -12,6 +13,7 @@ App::App(std::unique_ptr<sc::IReader> reader,
          std::unique_ptr<sc::IWriter> writer)
     : m_reader(std::move(reader)), m_process(std::move(process)),
       m_writer(std::move(writer)) {}
+App::~App() {}
 
 void App::SetReader(std::unique_ptr<sc::IReader> reader) {
   m_reader = std::move(reader);
@@ -26,22 +28,14 @@ void App::SetWriter(std::unique_ptr<sc::IWriter> writer) {
 }
 
 int App::Start() {
-  std::promise<int> processPromise, writePromise;
-  auto processFuture = processPromise.get_future();
-  auto writeFuture = writePromise.get_future();
-
-  std::thread processThread(&App::processThread, this,
-                            std::move(processPromise));
-  std::thread writeThread(&App::writeThread, this, std::move(writePromise));
-
-  if (int processError = processFuture.get(); processError != 0) {
-    Logger::GetInstance().Error("Error with processing class");
-    return processError;
+  if (m_reader == nullptr || m_process == nullptr || m_writer == nullptr) {
+    Logger::GetInstance().Error("Some of reader, process or writer is not "
+                                "initialized corectly. Aborting");
+    return 1;
   }
-  if (int writeError = writeFuture.get(); writeError != 0) {
-    Logger::GetInstance().Error("Error with writing class");
-    return writeError;
-  }
+
+  std::thread processThread(&App::processThread, this);
+  std::thread writeThread(&App::writeThread, this);
 
   processThread.join();
   writeThread.join();
@@ -51,71 +45,40 @@ int App::Start() {
 
 // Application private
 
-void App::processThread(std::promise<int> promise) {
-  int err = 0;
-
+void App::processThread() {
   while (true) {
-    std::string input = m_reader->Read();
-    std::lock_guard<std::mutex> lock(m_buffer_lock);
-    err = m_process->Process(input, m_buffer);
-    if (err != 0) {
-      m_buffer.clear();
+    std::string input = m_reader->Read(quiting);
+    if (quiting)
       break;
-    }
+
+    std::lock_guard<std::mutex> lock(m_buffer_lock);
+    int err = m_process->Process(input, m_buffer);
+    if (err != 0)
+      break;
+    
     m_buffer_full.notify_one();
   }
-  promise.set_value(err);
+  quiting = true;
+  m_buffer_full.notify_one();
+  m_buffer.clear();
+  Logger::GetInstance().Log("Exiting process thread...");
 }
 
-void App::writeThread(std::promise<int> promise) {
+void App::writeThread() {
   while (true) {
     std::unique_lock<std::mutex> lock(m_buffer_lock);
-    m_buffer_full.wait(lock, [this]() { return !m_buffer.empty(); });
+    Logger::GetInstance().Log(
+        "Waiting for process thread to release buffer...");
+    m_buffer_full.wait(lock, [this]() { return !m_buffer.empty() || quiting; });
+    if (quiting)
+      break;
+    
+    Logger::GetInstance().Log("Got buffer to write");
+    if (m_writer == nullptr)
+      Logger::GetInstance().Log("Nullptr");
 
     m_writer->Write(m_buffer);
     m_buffer.clear();
   }
+  Logger::GetInstance().Log("Exiting write thread...");
 }
-
-// template <typename type>
-// App<type>::App(std::unique_ptr<Reader> reader, std::unique_ptr<Process>
-// process,
-//                std::unique_ptr<Writer> writer)
-//     : m_reader(std::move(reader)), m_process(std::move(process)),
-//       m_writer(std::move(writer)) {}
-//
-// template <typename type>
-// void App<type>::setReader(std::unique_ptr<Reader> reader) {
-//   m_reader = std::move(reader);
-// }
-//
-// template <typename type>
-// void App<type>::setProcess(std::unique_ptr<Process> process) {
-//   m_process = std::move(process);
-// }
-//
-// template <typename type>
-// void App<type>::setWriter(std::unique_ptr<Writer> writer) {
-//   m_writer = std::move(writer);
-// }
-//
-// template <typename type> int App<type>::Start() {
-//   std::thread processThread(&App::ProcessThread, this);
-//   std::thread writeThread(&App::WriteThread, this);
-//   processThread.join();
-// }
-//
-// // Application private
-//
-// template <typename type> void App<type>::ProcessThread() {
-//   while (true) {
-//     type input = m_reader->Read();
-//     std::lock_guard<std::mutex> lock(m_buffer_lock);
-//     m_process->Process(m_buffer);
-//   }
-// }
-// template <typename type> void App<type>::WriteThread() {
-//   while (true) {
-//     int err = m_writer->Write(m_buffer);
-//   }
-// }

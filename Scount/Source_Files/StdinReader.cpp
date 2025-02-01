@@ -7,22 +7,36 @@
 
 namespace sc {
 
-std::string StdinReader::Read() {
+std::string StdinReader::Read(bool &quit) {
   std::string input;
 
   const std::regex pattern("[a-zA-Z]+");
 
   while (true) {
-    Logger::GetInstance().Write("Enter string (up to 64 symbols): ");
+    Logger::GetInstance().Write("Enter string (up to 64 symbols)( - to quit): ");
     std::getline(std::cin, input);
 
-    if (!input.empty() && input.size() <= 64 &&
-        std::regex_match(input, pattern))
-      break;
+    if (input == "-") {
+      Logger::GetInstance().Log("Quiting...");
+      quit = true;
+      return "None";
+    }
 
-    Logger::GetInstance().Error(
-        "Size of the input string must be in range [1, 64]");
+    if (input.empty() || 64 < input.size()) {
+      Logger::GetInstance().Error(
+          "Size of the input string must be in range [1, 64]");
+      continue;
+    }
+
+    if (!std::regex_match(input, pattern)) {
+      Logger::GetInstance().Error(
+          "Input must ocntain only characters of latin alphabet");
+      continue;
+    }
+    break;
   }
+  Logger::GetInstance().Log("Got user input. Size: " +
+                            std::to_string(input.length()));
   return input;
 }
 

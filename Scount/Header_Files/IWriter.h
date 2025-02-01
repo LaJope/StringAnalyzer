@@ -7,16 +7,8 @@ namespace sc {
 
 class IWriter {
 public:
-  virtual int Write(std::map<char, uint8_t> &) = 0;
+  virtual int Write(std::map<char, uint8_t>) = 0;
+  virtual ~IWriter(){};
 };
 
 } // namespace sc
-
-// namespace sc {
-//
-// template <typename type> class IWriter {
-// public:
-//   virtual int Write(std::map<type, int> &buffer) = 0;
-// };
-//
-// } // namespace sc

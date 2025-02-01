@@ -6,16 +6,8 @@ namespace sc {
 
 class IReader {
 public:
-  virtual std::string Read() = 0;
+  virtual std::string Read(bool &) = 0;
+  virtual ~IReader() {}
 };
 
 } // namespace sc
-
-// namespace sc {
-//
-// template <typename type> class IReader {
-// public:
-//   virtual type Read() = 0;
-// };
-//
-// } // namespace sc

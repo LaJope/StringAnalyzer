@@ -4,7 +4,7 @@ namespace sc {
 
 class StdinReader : public IReader {
 public:
-  std::string Read() override;
+  std::string Read(bool &) override;
 };
 
 } // namespace sc

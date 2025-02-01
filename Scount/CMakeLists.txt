@@ -2,7 +2,7 @@ project(scount)
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 
-set(SOURCE_FILES ./Source_Files/main.cpp ./Source_Files/SprintWriter.cpp ./Source_Files/StdinReader.cpp ./Source_Files/Application.cpp ./Source_Files/StringProcess.cpp)
+set(SOURCE_FILES ./Source_Files/main.cpp ./Source_Files/AppSettings.cpp ./Source_Files/JsonWriter.cpp ./Source_Files/SprintWriter.cpp ./Source_Files/StdinReader.cpp ./Source_Files/Application.cpp ./Source_Files/StringProcess.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
