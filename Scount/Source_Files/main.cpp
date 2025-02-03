@@ -12,9 +12,10 @@
 #include "StdinReader.h"
 #include "StringProcess.h"
 
-
 int main(int argc, char *argv[]) {
   AppSettings settings(argc, argv);
+
+  Logger::GetInstance().SetProgramName("Scount");
 
   if (settings.m_help) {
     Logger::GetInstance().Write(HelpMessage);
@@ -28,19 +29,19 @@ int main(int argc, char *argv[]) {
 
   reader = std::make_unique<sc::StdinReader>();
   process = std::make_unique<sc::StringProcess>();
-  // writer = std::make_unique<sc::JsonWriter>(settings.m_outfile);
-  int err = 0;
-  writer = std::make_unique<sc::SprintWriter>(settings.m_port,
-                                              settings.m_sprintPath, err);
-
-  if (err) {
-    Logger::GetInstance().Error("Error");
-    return 1;
+  if (settings.m_toJson) {
+    writer = std::make_unique<sc::JsonWriter>(settings.m_outfile);
+  } else {
+    int err = 0;
+    writer = std::make_unique<sc::SprintWriter>(settings.m_port,
+                                                settings.m_sprintPath, err);
+    if (err) {
+      return 1;
+    }
   }
 
   App application(std::move(reader), std::move(process), std::move(writer));
+  int err = application.Start();
 
-  application.Start();
-
-  return 0;
+  return err;
 }

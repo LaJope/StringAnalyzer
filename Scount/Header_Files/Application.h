@@ -13,7 +13,6 @@ class App {
 public:
   App(std::unique_ptr<sc::IReader>, std::unique_ptr<sc::IProcess>,
       std::unique_ptr<sc::IWriter>);
-  ~App();
 
   void SetReader(std::unique_ptr<sc::IReader>);
   void SetProcess(std::unique_ptr<sc::IProcess>);

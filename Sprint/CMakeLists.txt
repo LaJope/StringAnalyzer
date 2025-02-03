@@ -2,7 +2,7 @@ project(sprint)
 
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 
-set(SOURCE_FILES ./Source_Files/main.cpp ./Source_Files/AppSettings.cpp)
+set(SOURCE_FILES ./Source_Files/main.cpp ./Source_Files/AppSettings.cpp ./Source_Files/Application.cpp ./Source_Files/ScountReader.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 

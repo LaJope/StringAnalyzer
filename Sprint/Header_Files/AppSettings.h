@@ -10,7 +10,7 @@ public:
   bool m_help = false;
   bool m_verbose = false;
 
-  int m_port = 6060;
+  int m_port = 8060;
 
 public:
   AppSettings(int argc, char *argv[]);

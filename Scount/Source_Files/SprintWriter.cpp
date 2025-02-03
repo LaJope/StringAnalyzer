@@ -44,10 +44,10 @@ int SprintWriter::Write(std::map<char, uint8_t> buffer) {
   int alphabetSize = 26 * 2;
   int messageSize = alphabetSize * 2;
   uint8_t message[messageSize];
-  std::memset(message, 0, messageSize);
+  std::memset(message, '\0', messageSize);
   int ind = 0;
   for (auto it = buffer.begin(); it != buffer.end(); it++) {
-    if (ind + 1 >= buffer.size()) {
+    if (ind + 1 >= messageSize) {
       Logger::GetInstance().Error("Buffer size too big");
       return 1;
     }
@@ -151,9 +151,9 @@ int SprintWriter::connectClient() {
 }
 
 int SprintWriter::startSprint() {
-  // Logger::GetInstance().Log("Started sprint program");
   char sprintCall[256];
-  std::sprintf(sprintCall, "%s -p %d&", m_sprintPath.c_str(), m_port);
+  std::sprintf(sprintCall, "%s --port %d %s &", m_sprintPath.c_str(), m_port,
+               (Logger::GetInstance().GetVerbose() ? "--verbose" : ""));
   int err = system(sprintCall);
   if (err) {
     Logger::GetInstance().Error("Could not start sprint program: " +

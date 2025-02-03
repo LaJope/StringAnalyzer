@@ -13,7 +13,6 @@ App::App(std::unique_ptr<sc::IReader> reader,
          std::unique_ptr<sc::IWriter> writer)
     : m_reader(std::move(reader)), m_process(std::move(process)),
       m_writer(std::move(writer)) {}
-App::~App() {}
 
 void App::SetReader(std::unique_ptr<sc::IReader> reader) {
   m_reader = std::move(reader);
@@ -55,7 +54,7 @@ void App::processThread() {
     int err = m_process->Process(input, m_buffer);
     if (err != 0)
       break;
-    
+
     m_buffer_full.notify_one();
   }
   quiting = true;
@@ -66,19 +65,22 @@ void App::processThread() {
 
 void App::writeThread() {
   while (true) {
-    std::unique_lock<std::mutex> lock(m_buffer_lock);
-    Logger::GetInstance().Log(
-        "Waiting for process thread to release buffer...");
-    m_buffer_full.wait(lock, [this]() { return !m_buffer.empty() || quiting; });
-    if (quiting)
-      break;
-    
-    Logger::GetInstance().Log("Got buffer to write");
-    if (m_writer == nullptr)
-      Logger::GetInstance().Log("Nullptr");
+    std::map<char, uint8_t> copy;
+    {
+      std::unique_lock<std::mutex> lock(m_buffer_lock);
+      Logger::GetInstance().Log(
+          "Waiting for process thread to release buffer...");
+      m_buffer_full.wait(lock,
+                         [this]() { return !m_buffer.empty() || quiting; });
+      if (quiting)
+        break;
 
-    m_writer->Write(m_buffer);
-    m_buffer.clear();
+      copy = m_buffer;
+      m_buffer.clear();
+    }
+
+    Logger::GetInstance().Log("Got buffer to write");
+    m_writer->Write(copy);
   }
   Logger::GetInstance().Log("Exiting write thread...");
 }

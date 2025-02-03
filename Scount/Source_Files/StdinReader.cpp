@@ -7,13 +7,17 @@
 
 namespace sc {
 
+StdinReader::StdinReader() {
+  Logger::GetInstance().Write(
+      "You can begin entering strings (up to 64 symbols)( - to quit)");
+}
+
 std::string StdinReader::Read(bool &quit) {
   std::string input;
 
   const std::regex pattern("[a-zA-Z]+");
 
   while (true) {
-    Logger::GetInstance().Write("Enter string (up to 64 symbols)( - to quit): ");
     std::getline(std::cin, input);
 
     if (input == "-") {
