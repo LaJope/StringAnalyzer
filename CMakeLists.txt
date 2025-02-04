@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.30.0)
+cmake_minimum_required(VERSION 3.12.0)
 
 project(StringAnalyzer VERSION 1.0.0 LANGUAGES CXX)
 

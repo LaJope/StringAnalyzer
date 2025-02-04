@@ -1,15 +1,20 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
-#include <iostream>
 #include <vector>
 
 #include "AppSettings.h"
+#include "HelpMessage.h"
 #include "Logger.h"
 #include "ScountReader.h"
 
 int main(int argc, char *argv[]) {
   AppSettings settings(argc, argv);
+
+  if (settings.m_help) {
+    Logger::GetInstance().Write(HelpMessage, true);
+    return 0;
+  }
 
   Logger::GetInstance().SetVerbose(settings.m_verbose);
 

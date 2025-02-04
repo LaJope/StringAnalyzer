@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
   Logger::GetInstance().SetProgramName("Scount");
 
   if (settings.m_help) {
-    Logger::GetInstance().Write(HelpMessage);
+    Logger::GetInstance().Write(HelpMessage, true);
     return 0;
   }
   Logger::GetInstance().SetVerbose(settings.m_verbose);
