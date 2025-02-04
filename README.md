@@ -7,7 +7,7 @@ counts letters in the string, connects to the client (sprint) and sends collecte
 
 usage: scount [-h | --help] [-v | --verbose] [-j | --to-json]
               [-S | --start-sprint] [-o | --outfile \<json-filename\>]
-              [-p | --port \<port\>] [-s | --sprint-path \<path\>] 
+              [-p | --port \<port\>] [-s | --sprint-path \<path\>]  
 
 If using -S flag, ensure that sprint program is either in the same folder from
 which you call scount or in PATH. Optionally you can specify the path to sprint
@@ -19,18 +19,18 @@ Default:
   sends data at specified port (delfault 8060) to sprint client (if connected).
   Repeats that until user exits.
 
---to-json      - Redirect output to json file
---outfile      - Set output filename (.json)
---port         - Set port for scount and sprint to communicate
---start-sprint - Automatically start sprint alongside scount program
---sprint-path  - Set path to sprint program
+--to-json      - Redirect output to json file  
+--outfile      - Set output filename (.json)  
+--port         - Set port for scount and sprint to communicate  
+--start-sprint - Automatically start sprint alongside scount program  
+--sprint-path  - Set path to sprint program  
 
 ## Help Sprint
 
 usage: sprint [-h | --help] [-v | --verbose] [-p | --port \<port\>]
 
 Default:
-  Listens on port 8060 for incoming messages from scount. Prints recieved
+  Listens on port 8060 for incoming messages from scount. Prints recieved  
   letters in ascending order depending on its frequency.
 
 --port - Set port for scount and sprint to communicate
