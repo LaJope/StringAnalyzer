@@ -14,20 +14,35 @@ namespace sc {
 
 // SprintWriter public
 
-SprintWriter::SprintWriter(int port, std::string sprintPath, int &err)
-    : m_port(port) {
-  Logger::GetInstance().Log("Searching for sprint");
-  err = findSprintPath(sprintPath);
-  if (err)
-    return;
-  Logger::GetInstance().Log("Starting sprint");
-  startSprint();
+SprintWriter::SprintWriter(int port, std::string sprintPath, int &err,
+                           bool startSprint)
+    : m_port(port), m_startSprint(startSprint) {
+  if (m_startSprint) {
+    Logger::GetInstance().Log("Searching for sprint");
+    err = findSprintPath(sprintPath);
+    if (err)
+      return;
+    Logger::GetInstance().Log("Starting sprint");
+    startSprintProgram();
+  }
   Logger::GetInstance().Log("Starting server");
   err = startServer();
   if (err)
     return;
 }
 SprintWriter::~SprintWriter() {
+  if (m_startSprint) {
+    int alphabetSize = 26 * 2;
+    int messageSize = alphabetSize * 2;
+    uint8_t message[messageSize];
+    std::memset(message, 1, messageSize);
+
+    int bytesSent = send(m_clientSocket, message, sizeof(message), 0);
+    if (bytesSent == -1) {
+      Logger::GetInstance().Error("Could not send data to sprint");
+    }
+  }
+
   close(m_serverSocket);
   close(m_clientSocket);
 }
@@ -36,15 +51,17 @@ SprintWriter::~SprintWriter() {
 int SprintWriter::Write(std::map<char, uint8_t> buffer) {
   Logger::GetInstance().Log("Sending buffer to client");
   if (!checkConnection()) {
-    Logger::GetInstance().Warning(
-        "Client socket was disconnected. Retrying...");
-    startSprint();
+    Logger::GetInstance().Warning("Client socket was disconnected");
+    if (m_startSprint) {
+      Logger::GetInstance().Warning("Restarting sprint");
+      startSprintProgram();
+    }
     connectClient();
   }
   int alphabetSize = 26 * 2;
   int messageSize = alphabetSize * 2;
   uint8_t message[messageSize];
-  std::memset(message, '\0', messageSize);
+  std::memset(message, 0, messageSize);
   int ind = 0;
   for (auto it = buffer.begin(); it != buffer.end(); it++) {
     if (ind + 1 >= messageSize) {
@@ -106,12 +123,20 @@ int SprintWriter::startServer() {
     Logger::GetInstance().Error("Could not open socket. Aborting...");
     return 1;
   }
+  int opt = 1;
+  int err =
+      setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+  if (err < 0) {
+    Logger::GetInstance().Error("Could not set socket option. Aborting...");
+    return 1;
+  }
+
   m_serverAddress.sin_family = AF_INET;
   m_serverAddress.sin_port = htons(m_port);
   m_serverAddress.sin_addr.s_addr = INADDR_ANY;
 
-  int err = bind(m_serverSocket, (struct sockaddr *)&m_serverAddress,
-                 sizeof(m_serverAddress));
+  err = bind(m_serverSocket, (struct sockaddr *)&m_serverAddress,
+             sizeof(m_serverAddress));
   if (err) {
     Logger::GetInstance().Error("Could not bind socket at port " +
                                 std::to_string(m_port));
@@ -132,7 +157,7 @@ int SprintWriter::startServer() {
 }
 
 int SprintWriter::connectClient() {
-  Logger::GetInstance().Log("Connecting client");
+  Logger::GetInstance().Write("Waiting for client to connect");
   if (m_clientSocket)
     close(m_clientSocket);
 
@@ -145,12 +170,12 @@ int SprintWriter::connectClient() {
     return 1;
   }
 
-  Logger::GetInstance().Log("Client connected");
+  Logger::GetInstance().Write("Client connected");
 
   return 0;
 }
 
-int SprintWriter::startSprint() {
+int SprintWriter::startSprintProgram() {
   char sprintCall[256];
   std::sprintf(sprintCall, "%s --port %d %s &", m_sprintPath.c_str(), m_port,
                (Logger::GetInstance().GetVerbose() ? "--verbose" : ""));
@@ -166,22 +191,25 @@ int SprintWriter::startSprint() {
 }
 
 bool SprintWriter::checkConnection() {
-  int error = 0;
-  socklen_t len = sizeof(error);
-  int retval = getsockopt(m_clientSocket, SOL_SOCKET, SO_ERROR, &error, &len);
-  if (retval != 0) {
-    Logger::GetInstance().Error("Could not get socket error code: " +
-                                std::string(strerror(retval)));
+  char buffer[1];
+  int retval =
+      recv(m_clientSocket, buffer, sizeof(buffer), MSG_PEEK | MSG_DONTWAIT);
+  if (retval == 0) {
+    Logger::GetInstance().Error("Client disconnected");
     return false;
   }
-
-  if (error != 0) {
-    Logger::GetInstance().Error("Socket error: " +
-                                std::string(strerror(error)));
-    return false;
+  if (retval < 0) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      Logger::GetInstance().Log("Sprint program is still connected");
+      return true;
+    } else {
+      Logger::GetInstance().Error("Socket error: " +
+                                  std::string(strerror(errno)));
+      Logger::GetInstance().Error("Client disconnected");
+      return false;
+    }
   }
   Logger::GetInstance().Log("Sprint program is still connected");
-
   return true;
 }
 

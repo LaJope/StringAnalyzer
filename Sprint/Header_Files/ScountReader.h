@@ -20,8 +20,13 @@ private:
   int m_port;
   int m_clientSocket;
 
+  const int m_maxReconectAttempts = 5;
+
 private:
   int connectToServer();
+  int reconnectToServer();
+
+  bool checkConnection();
 };
 
 } // namespace sp

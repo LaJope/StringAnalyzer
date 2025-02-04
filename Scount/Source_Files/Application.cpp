@@ -1,5 +1,6 @@
 #include <memory>
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "Application.h"
@@ -72,6 +73,7 @@ void App::writeThread() {
           "Waiting for process thread to release buffer...");
       m_buffer_full.wait(lock,
                          [this]() { return !m_buffer.empty() || quiting; });
+
       if (quiting)
         break;
 

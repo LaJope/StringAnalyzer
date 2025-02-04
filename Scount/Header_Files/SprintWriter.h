@@ -8,7 +8,7 @@ namespace sc {
 
 class SprintWriter : public IWriter {
 public:
-  SprintWriter(int, std::string, int &);
+  SprintWriter(int, std::string, int &, bool);
   ~SprintWriter();
 
   int Write(std::map<char, uint8_t>) override;
@@ -20,6 +20,8 @@ private:
 
   std::string m_sprintPath = "sprint";
 
+  bool m_startSprint;
+
 private:
   static bool checkPath(std::string);
   int findSprintPath(std::string);
@@ -27,7 +29,7 @@ private:
   int startServer();
   int connectClient();
 
-  int startSprint();
+  int startSprintProgram();
 
   bool checkConnection();
 };

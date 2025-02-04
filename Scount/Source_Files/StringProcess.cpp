@@ -12,6 +12,7 @@ int StringProcess::Process(std::string str, std::map<char, uint8_t> &buffer) {
 
   int ind = 0;
   std::string output;
+  output.reserve(buffer.size() * 8);
   for (auto it = buffer.begin(); it != buffer.end(); it++) {
     ind++;
     char row[10];
@@ -22,6 +23,7 @@ int StringProcess::Process(std::string str, std::map<char, uint8_t> &buffer) {
   }
   if (ind % 5 != 0)
     output += "\n";
+
   Logger::GetInstance().Write(output, true);
   Logger::GetInstance().Log("Ended processing of string: " + str);
   return 0;

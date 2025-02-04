@@ -33,8 +33,8 @@ int main(int argc, char *argv[]) {
     writer = std::make_unique<sc::JsonWriter>(settings.m_outfile);
   } else {
     int err = 0;
-    writer = std::make_unique<sc::SprintWriter>(settings.m_port,
-                                                settings.m_sprintPath, err);
+    writer = std::make_unique<sc::SprintWriter>(
+        settings.m_port, settings.m_sprintPath, err, settings.m_startSprint);
     if (err) {
       return 1;
     }

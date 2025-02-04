@@ -42,6 +42,7 @@ AppSettings::AppSettings(int argc, char *argv[]) {
 void AppSettings::setHelpToTrue() { m_help = true; }
 void AppSettings::setVerboseToTrue() { m_verbose = true; }
 void AppSettings::setToJsonToTrue() { m_toJson = true; }
+void AppSettings::setStartSprintToTrue() { m_startSprint = true; }
 void AppSettings::setOutfile(std::string fileName) {
   m_outfile = fileName.substr(0, fileName.find("."));
   setToJsonToTrue();

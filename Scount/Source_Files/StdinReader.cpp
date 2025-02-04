@@ -8,8 +8,8 @@
 namespace sc {
 
 StdinReader::StdinReader() {
-  Logger::GetInstance().Write(
-      "You can begin entering strings (up to 64 symbols)( - to quit)");
+  Logger::GetInstance().Write("When client is connected you can begin entering "
+                              "strings (up to 64 symbols)( - to quit)");
 }
 
 std::string StdinReader::Read(bool &quit) {
