@@ -37,7 +37,7 @@ int JsonWriter::Write(std::map<char, uint8_t> buffer) {
   }
   jsonFile << "{\n";
   for (auto it = buffer.begin(); it != buffer.end(); it++) {
-    char *jsonRow = (char *)malloc(sizeof(char) * 10);
+    char jsonRow[10];
     sprintf(jsonRow, "\"%c\": %d,", it->first, it->second);
     jsonFile << jsonRow << std::endl;
   }
